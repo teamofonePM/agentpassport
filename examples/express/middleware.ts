@@ -1,108 +1,94 @@
 /**
- * AgentPassport — Express middleware example
+ * ACF — Agent Credential Format
+ * Express middleware example
  *
- * Drop this into any Express API to start verifying agent credentials.
- * Full spec: https://github.com/agentpassport/agentpassport/blob/main/docs/SPEC.md
+ * Drop into any Express API to start verifying agent credentials.
+ * Spec: https://github.com/teamofonePM/agentpassport/blob/main/docs/SPEC.md
  */
 
 import { Request, Response, NextFunction } from 'express'
-import { verify, VerifiedPassport } from 'agentpassport'
+import { verify, VerifiedCredential } from 'acf-token'
 
 declare global {
   namespace Express {
     interface Request {
-      agent?: VerifiedPassport
+      agent?: VerifiedCredential
     }
   }
 }
 
 interface AgentAuthOptions {
-  /** Required scopes — request rejected with 403 if agent doesn't have all of them */
   requiredScopes?: string[]
-  /** If true, allow requests with no passport (anonymous agents) — default false */
   allowAnonymous?: boolean
-  /** Custom handler for unauthorized requests */
   onUnauthorized?: (req: Request, res: Response, reason: string) => void
 }
 
 /**
- * Express middleware that verifies AgentPassport credentials.
+ * Verify ACF credentials on incoming requests.
  *
  * @example
- * // Require any valid passport
+ * // Require any valid ACF credential
  * app.use(agentAuth())
  *
  * @example
  * // Require specific scopes
- * app.get('/crm-data', agentAuth({ requiredScopes: ['read:crm'] }), handler)
+ * app.get('/data', agentAuth({ requiredScopes: ['read:crm'] }), handler)
  *
  * @example
- * // Allow anonymous but attach passport if present
+ * // Allow anonymous but attach credential if present
  * app.use(agentAuth({ allowAnonymous: true }))
  */
 export function agentAuth(options: AgentAuthOptions = {}) {
-  const {
-    requiredScopes = [],
-    allowAnonymous = false,
-    onUnauthorized
-  } = options
+  const { requiredScopes = [], allowAnonymous = false, onUnauthorized } = options
 
   return async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers['x-agent-passport'] as string | undefined
+    const token = req.headers['x-acf-token'] as string | undefined
 
     if (!token) {
       if (allowAnonymous) return next()
-      const reason = 'No agent passport provided'
+      const reason = 'No ACF credential provided'
       if (onUnauthorized) return onUnauthorized(req, res, reason)
       return res.status(401).json({
-        error: 'agent_passport_required',
+        error: 'acf_credential_required',
         message: reason,
-        docs: 'https://github.com/agentpassport/agentpassport'
+        spec: 'https://github.com/teamofonePM/agentpassport/blob/main/docs/SPEC.md'
       })
     }
 
     try {
-      const passport = await verify(token)
-      req.agent = passport
+      const credential = await verify(token)
+      req.agent = credential
 
-      // Check required scopes
-      const missingScopes = requiredScopes.filter(s => !passport.scopes.includes(s))
-      if (missingScopes.length > 0) {
-        const reason = `Missing required scopes: ${missingScopes.join(', ')}`
+      const missing = requiredScopes.filter(s => !credential.scopes.includes(s))
+      if (missing.length > 0) {
+        const reason = `Missing scopes: ${missing.join(', ')}`
         if (onUnauthorized) return onUnauthorized(req, res, reason)
         return res.status(403).json({
           error: 'insufficient_scope',
           message: reason,
           required: requiredScopes,
-          granted: passport.scopes
+          granted: credential.scopes
         })
       }
 
       next()
     } catch (err: any) {
-      const reason = err.message || 'Invalid agent passport'
+      const reason = err.message || 'Invalid ACF credential'
       if (onUnauthorized) return onUnauthorized(req, res, reason)
-      return res.status(401).json({
-        error: 'invalid_agent_passport',
-        message: reason
-      })
+      return res.status(401).json({ error: 'invalid_acf_credential', message: reason })
     }
   }
 }
 
-// Usage example:
+// Usage:
 //
 // import express from 'express'
-// import { agentAuth } from './agentpassport-express'
+// import { agentAuth } from './acf-express'
 //
 // const app = express()
-//
-// // Require passport on all routes
 // app.use(agentAuth())
 //
-// // Require specific scope on sensitive route
-// app.get('/financial-data', agentAuth({ requiredScopes: ['read:financial'] }), (req, res) => {
-//   // req.agent is typed VerifiedPassport
-//   console.log(`Request from ${req.agent!.org} / ${req.agent!.agentId}`)
+// app.get('/data', agentAuth({ requiredScopes: ['read:crm'] }), (req, res) => {
+//   console.log(`${req.agent!.org} / ${req.agent!.agentId}`)
 //   res.json({ data: '...' })
 // })

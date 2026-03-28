@@ -1,8 +1,9 @@
 /**
- * AgentPassport — Core SDK
- * Agent Credential Format (ACF) v0.1
+ * ACF — Agent Credential Format
+ * Core SDK — v0.1 draft
  *
- * Spec: https://github.com/agentpassport/agentpassport/blob/main/docs/SPEC.md
+ * Spec: https://github.com/teamofonePM/agentpassport/blob/main/docs/SPEC.md
+ * Built by: https://www.linkedin.com/in/theanmolrattan/
  */
 
 export interface ACFRules {
@@ -53,21 +54,20 @@ export interface IssueOptions {
   scopes: string[]
   rules?: ACFRules
   delegation?: Omit<ACFDelegation, 'chain'>
-  ttl?: string   // e.g. '1h', '30m', '24h' — max '24h'
-  revocationId?: string
+  ttl?: string  // '1h' | '30m' | '24h' — max '24h'
 }
 
-export interface AgentPassportConfig {
+export interface ACFConfig {
   orgId: string
   orgDomain: string
-  signingKey: string   // Ed25519 private key, base64
-  issuerUrl?: string   // defaults to https://{orgDomain}/.well-known/agentpassport.json
+  signingKey: string  // Ed25519 private key — load from environment, never hardcode
+  issuerUrl?: string  // defaults to https://{orgDomain}/.well-known/acf.json
 }
 
-export class AgentPassport {
-  private config: AgentPassportConfig
+export class ACF {
+  private config: ACFConfig
 
-  constructor(config: AgentPassportConfig) {
+  constructor(config: ACFConfig) {
     this.config = config
   }
 
@@ -75,7 +75,13 @@ export class AgentPassport {
    * Issue a signed ACF token for an agent.
    *
    * @example
-   * const { token, payload } = await ap.issue({
+   * const acf = new ACF({
+   *   orgId: 'acme_corp',
+   *   orgDomain: 'acme.com',
+   *   signingKey: process.env.ACF_PRIVATE_KEY  // never hardcode
+   * })
+   *
+   * const { token } = await acf.issue({
    *   agentId: 'research-agent-01',
    *   scopes: ['read:crm'],
    *   rules: { blockActions: ['send:email'] },
@@ -84,40 +90,44 @@ export class AgentPassport {
    */
   async issue(options: IssueOptions): Promise<{ token: string; payload: ACFPayload }> {
     // Implementation: sign JWT with Ed25519
-    // See packages/core/src/sign.ts
-    throw new Error('Not yet implemented — contributions welcome')
+    // Contributions welcome — see CONTRIBUTING.md
+    throw new Error('Not yet implemented')
   }
 }
 
 export interface VerifyOptions {
-  trustedIssuers?: string[]     // if empty, accepts any issuer
-  checkRevocation?: boolean     // default: true if revocationId present
-  clockSkewSeconds?: number     // default: 30
+  trustedIssuers?: string[]   // empty = accept any issuer
+  checkRevocation?: boolean   // default: true when revocationId present
+  clockSkewSeconds?: number   // default: 30
 }
 
-export interface VerifiedPassport extends ACFPayload {
+export interface VerifiedCredential extends ACFPayload {
   valid: true
   verifiedAt: number
 }
 
 /**
  * Verify an ACF token.
+ *
  * Offline verification — no network round trip for signature check.
- * Completes in < 1ms for cached public keys.
+ * Public keys are cached from the issuer's jwks_uri.
+ * Completes in under 1ms for cached keys.
  *
  * @example
- * const passport = await verify(req.headers['x-agent-passport'])
- * // passport.org        → 'acme_corp'
- * // passport.agentId    → 'research-agent-01'
- * // passport.scopes     → ['read:crm']
+ * const credential = await verify(req.headers['x-acf-token'])
+ *
+ * // credential.org      -> 'acme_corp'
+ * // credential.agentId  -> 'research-agent-01'
+ * // credential.scopes   -> ['read:crm']
+ * // credential.rules    -> { blockActions: ['send:email'] }
  */
 export async function verify(
   token: string,
   options?: VerifyOptions
-): Promise<VerifiedPassport> {
-  // Implementation: verify EdDSA signature, check exp, check revocation
-  // See packages/verify/src/verify.ts
-  throw new Error('Not yet implemented — contributions welcome')
+): Promise<VerifiedCredential> {
+  // Implementation: verify EdDSA signature, check exp, optionally check revocation
+  // Contributions welcome — see CONTRIBUTING.md
+  throw new Error('Not yet implemented')
 }
 
 export class RulesClient {
@@ -125,7 +135,11 @@ export class RulesClient {
 
   /**
    * Revoke a specific agent's credentials immediately.
-   * Propagates to all verifiers checking revocation endpoint in < 500ms.
+   * Propagates to all verifiers checking the revocation endpoint in under 500ms.
+   *
+   * @example
+   * const rules = new RulesClient(process.env.ACF_KEY)
+   * await rules.revoke('research-agent-01')
    */
   async revoke(agentId: string): Promise<void> {
     throw new Error('Not yet implemented')
@@ -133,7 +147,11 @@ export class RulesClient {
 
   /**
    * Block an action across all agents in the org.
-   * Changes take effect on next token verification.
+   * Optionally scope to a single agent.
+   *
+   * @example
+   * await rules.block({ action: 'send:external-email' })
+   * await rules.block({ action: 'write:db', agentId: 'specific-agent' })
    */
   async block(options: { action: string; agentId?: string }): Promise<void> {
     throw new Error('Not yet implemented')

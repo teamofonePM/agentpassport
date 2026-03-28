@@ -1,0 +1,38 @@
+{
+  "name": "acf-token",
+  "version": "0.1.0",
+  "description": "Agent Credential Format — open standard for AI agent identity, permissions, and audit",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint packages/*/src/**/*.ts"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-identity",
+    "agent-credentials",
+    "acf",
+    "jwt",
+    "mcp",
+    "a2a",
+    "agent-security",
+    "open-standard"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teamofonePM/agentpassport"
+  },
+  "homepage": "https://github.com/teamofonePM/agentpassport#readme",
+  "bugs": {
+    "url": "https://github.com/teamofonePM/agentpassport/issues"
+  },
+  "author": {
+    "name": "Anmol Rattan",
+    "url": "https://www.linkedin.com/in/theanmolrattan/"
+  }
+}

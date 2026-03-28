@@ -1,178 +1,165 @@
-# AgentPassport
+# ACF — Agent Credential Format
 
-**The open credential standard for autonomous AI agents.**
+**The open standard for AI agent identity, permissions, and audit.**
 
-Identity, permissions, and audit — in a single signed token every agent carries and every API can verify in under 1ms.
+A signed JWT that every agent carries and every API can verify in under 1ms — offline, no round trip, no shared secret.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Spec Version](https://img.shields.io/badge/spec-v0.1--draft-blue)](docs/SPEC.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Discord](https://img.shields.io/badge/Discord-join-7289DA)](https://discord.gg/agentpassport)
+
+> Built by [@theanmolrattan](https://www.linkedin.com/in/theanmolrattan/) · Building in public · March 2026
 
 ---
 
-## Why this exists
+## What is ACF?
 
-Agents are in production. Not in demos — in real systems, calling real APIs, taking real actions.
+ACF is to agent identity what JWT is to human identity — a standard token format, not a vendor product.
 
-And right now, nobody on the receiving end of those requests knows who sent them.
+Right now agents arrive at APIs as anonymous HTTP calls. Three independent surveys confirm the scale of this problem:
 
-**The data is unambiguous:**
+- **68%** of organizations cannot distinguish AI agent activity from human activity — even as 85% run agents in production *(CSA / Aembit, March 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/03/24/more-than-two-thirds-of-organizations-cannot-clearly-distinguish-ai-agent-from-human-actions))*
+- **84%** doubt they could pass a compliance audit focused on agent behavior *(CSA / Strata, February 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations))*
+- **78%** have no policy for creating or removing AI agent identities *(CSA / Oasis, January 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/01/27/79-of-it-pros-feel-ill-equipped-to-prevent-attacks-via-nhi-csa-oasis-survey-finds))*
 
-- **68%** of organizations cannot clearly distinguish AI agent activity from human activity — even as 85% run agents in production environments. *(CSA / Aembit, March 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/03/24/more-than-two-thirds-of-organizations-cannot-clearly-distinguish-ai-agent-from-human-actions))*
-- **84%** of organizations doubt they could pass a compliance audit focused on agent behavior. *(CSA / Strata Identity, February 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations))*
-- **78%** of organizations lack any policy for creating or removing AI identities. *(CSA / Oasis Security, January 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/01/27/79-of-it-pros-feel-ill-equipped-to-prevent-attacks-via-nhi-csa-oasis-survey-finds))*
-- Only **18%** of security leaders are highly confident their IAM systems can handle agent identities. *(CSA / Strata, 285 respondents)*
-- MCP's own 2026 roadmap lists **"audit trails, enterprise-managed auth, and delegation chains"** as explicitly unspecified. *(MCP Roadmap, updated March 5 2026 — [source](https://modelcontextprotocol.io/development/roadmap))*
-- A2A's roadmap explicitly calls for **"authorization schemes and optional credentials within the AgentCard"** as future work. *(A2A GitHub — [source](https://github.com/a2aproject/A2A))*
-
-We are in the same position the web was in 1994. Transactions existed. Trust did not. The answer then was a certificate authority layer — not better transactions.
-
-**AgentPassport is that layer for agents.**
+MCP's 2026 roadmap lists **"audit trails, enterprise-managed auth, and delegation chains"** as explicitly unaddressed. A2A calls for **"authorization schemes within the AgentCard"** as future work. ACF is the open format proposal that fills both gaps.
 
 ---
 
-## What it is
+## The token
 
-A signed JWT — the **Agent Credential Format (ACF)** — that travels with every agent request. It carries:
+An ACF token is a signed JWT carried in the `x-acf-token` header:
 
-| Field | What it solves |
-|---|---|
-| `org` + `org.domain` | Who owns this agent (domain-verified) |
-| `agentId` | Which specific agent sent this request |
-| `scopes` | What it's allowed to do |
-| `rules` | What it's explicitly blocked from doing |
-| `delegationChain` | Who spawned it (multi-agent tracing) |
-| `humanPrincipal` | Which human authorized it (EU AI Act) |
-| `revocationId` | Kill switch — revoke in <500ms |
+```json
+{
+  "org": "acme_corp",
+  "org_domain": "acme.com",
+  "agent_id": "research-agent-01",
+  "scopes": ["read:crm", "read:reports"],
+  "rules": {
+    "block_actions": ["send:email", "write:db"],
+    "max_spend_usd": 50
+  },
+  "delegation": {
+    "human_principal": "user:jane@acme.com",
+    "chain": []
+  },
+  "revocation_id": "rev_01HXYZ",
+  "exp": 1742644860,
+  "acf_version": "0.1"
+}
+```
 
-Verified offline. No network round trip. Verifies in under 1ms via EdDSA.
+Signed with **EdDSA (Ed25519)**. Verified offline. No database lookup. Under 1ms.
 
 ---
 
 ## Quickstart
 
 ```bash
-npm install agentpassport
+npm install acf-token
 ```
 
-**Issue a passport (agent deployer):**
+**Issue (agent deployer):**
 
 ```typescript
-import { AgentPassport } from 'agentpassport'
+import { ACF } from 'acf-token'
 
-const ap = new AgentPassport({
+const acf = new ACF({
   orgId: 'acme_corp',
-  signingKey: process.env.AP_PRIVATE_KEY
+  signingKey: process.env.ACF_PRIVATE_KEY
 })
 
-const { token } = await ap.issue({
+const { token } = await acf.issue({
   agentId: 'research-agent-01',
-  scopes: ['read:crm', 'read:reports'],
-  rules: {
-    blockActions: ['send:email', 'write:db'],
-    maxSpend: 50
-  },
-  ttl: '1h'
+  scopes:  ['read:crm'],
+  rules:   { blockActions: ['send:email'], maxSpendUsd: 50 },
+  ttl:     '1h'
 })
 
-// Attach to every outgoing request
-headers['x-agent-passport'] = token
+headers['x-acf-token'] = token
 ```
 
-**Verify a passport (API provider):**
+**Verify (API provider):**
 
 ```typescript
-import { verify } from 'agentpassport'
+import { verify } from 'acf-token'
 
-async function agentAuth(req, res, next) {
-  const passport = await verify(req.headers['x-agent-passport'])
+const credential = await verify(req.headers['x-acf-token'])
 
-  // passport.org        → 'acme_corp'   (domain-verified)
-  // passport.agentId    → 'research-agent-01'
-  // passport.scopes     → ['read:crm', 'read:reports']
-  // passport.rules      → { blockActions: ['send:email'] }
+// credential.org        -> 'acme_corp'  (domain-verified)
+// credential.agentId    -> 'research-agent-01'
+// credential.scopes     -> ['read:crm']
+// credential.rules      -> { blockActions: ['send:email'] }
 
-  if (!passport.scopes.includes(requiredScope)) {
-    return res.status(403).json({ error: 'Scope not granted' })
-  }
-
-  req.agent = passport
-  next()
+if (!credential.scopes.includes(requiredScope)) {
+  return res.status(403).json({ error: 'Scope not granted' })
 }
 ```
 
 **Revoke instantly:**
 
 ```typescript
-import { RulesClient } from 'agentpassport'
+import { RulesClient } from 'acf-token'
 
-const rules = new RulesClient(process.env.AP_KEY)
+const rules = new RulesClient(process.env.ACF_KEY)
 
-// Kill one agent
-await rules.revoke('research-agent-01')
-
-// Block an action across ALL org agents
-await rules.block({ action: 'send:external-email' })
-
-// Propagates in < 500ms. No redeploy.
+await rules.revoke('research-agent-01')     // kill one agent, <500ms
+await rules.block({ action: 'send:email' }) // block across all org agents
 ```
 
 ---
 
-## The spec
+## Why not just API keys?
 
-The **Agent Credential Format (ACF)** is an open standard. We're proposing it publicly and inviting the community to help shape it.
-
-→ [Read the full spec](docs/SPEC.md)
-→ [Discuss on GitHub Discussions](../../discussions)
-→ [Open an issue or PR](CONTRIBUTING.md)
+|  | API keys | ACF tokens |
+|---|---|---|
+| Who is the agent? | Unknown | Org + agentId, domain-verified |
+| What can it do? | Full credential scope | Explicit scopes + blocklist |
+| Stop it instantly? | Rotate and redeploy | revoke() in under 500ms |
+| Delegation chain? | None | Full parent to child tracing |
+| Audit trail? | None | Every action attributable |
+| Compliance export? | No | Yes |
 
 ---
 
-## Packages
+## Spec
 
-| Package | Description |
-|---|---|
-| [`agentpassport`](packages/core) | Core — issue, verify, revoke |
-| [`agentpassport-verify`](packages/verify) | Lightweight verify-only (zero deps) |
+The full Agent Credential Format specification lives in [`docs/SPEC.md`](docs/SPEC.md).
+
+Covers: token structure, all claim definitions, issuer discovery, verification algorithm, delegation chain validation, security considerations, and compatibility with MCP, A2A, and OAuth 2.1.
+
+[Read the spec](docs/SPEC.md) — [Propose changes](../../discussions/categories/spec)
 
 ---
 
 ## Compatibility
 
-AgentPassport is designed to complement, not replace, existing standards:
+ACF fills the gaps MCP and A2A leave open without touching either protocol:
 
-- **MCP (Model Context Protocol)** — fills the identity and audit gaps MCP explicitly leaves open in its 2026 roadmap
-- **A2A (Agent2Agent)** — provides the runtime credential that A2A's AgentCard describes but doesn't enforce
-- **OAuth 2.1** — built on top of, not instead of; ACF tokens are OAuth 2.1-compatible
+| Standard | Leaves open | ACF fills |
+|---|---|---|
+| MCP | Runtime identity, delegation, audit | All three |
+| A2A | Enforcement of AgentCard auth claims | Runtime credential |
+| OAuth 2.1 | Agent-specific claim types | rules, delegation, org fields |
 
 ---
 
 ## Contributing
 
-This project is in active early development. We especially want:
+Two things wanted right now:
 
-- **Incident reports** — real-world agent incidents that should inform the spec
-- **Framework integrations** — LangChain, CrewAI, LlamaIndex, AutoGen middleware
-- **Spec feedback** — fields missing, fields wrong, edge cases we haven't considered
+1. **Incident reports** — open an issue with `incident-report` label. The incident itself is the contribution, no fix needed.
+2. **Spec feedback** — missing fields, wrong fields, edge cases. Open a Discussion before a PR.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
----
-
-## Community
-
-- [GitHub Discussions](../../discussions) — spec proposals, questions, design decisions
-- [Discord](https://discord.gg/agentpassport) — real-time chat
-- [Spec mailing list](https://agentpassport.dev/spec-list) — low-traffic, spec-only updates
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-## License
+## Built by
 
-MIT. See [LICENSE](LICENSE).
+[Anmol Rattan](https://www.linkedin.com/in/theanmolrattan/) — building in public. Feedback, collaborators, and design partners welcome.
 
 ---
 
-*Building in public. Spec v0.1 draft. Not production-ready — yet.*
+MIT License. Spec v0.1 draft — open for community input.

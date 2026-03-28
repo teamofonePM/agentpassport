@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgentPassport — Set exactly what your agents can and can't do</title>
-<meta name="description" content="Identity, permissions, and audit for AI agents. One signed token. Every API knows exactly who's calling.">
-<meta property="og:title" content="AgentPassport — Control layer for AI agents">
-<meta property="og:description" content="Set exactly what your agents can and can't do. Open spec. One token. Verifies in under 1ms.">
-<meta property="og:url" content="https://myagentpassport.com">
+<title>ACF — Agent Credential Format</title>
+<meta name="description" content="The open standard for AI agent identity, permissions, and audit. One signed token. Any framework. Verifies in under 1ms.">
+<meta property="og:title" content="ACF — Agent Credential Format">
+<meta property="og:description" content="The open standard for AI agent identity, permissions, and audit. Like JWT — but for agents.">
+<meta property="og:url" content="https://agentcredential.dev">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@300;400;500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
   --bg:#09090B;--bg2:#0F0F12;--surface:#141417;--surface2:#1C1C21;
   --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.11);--b3:rgba(255,255,255,0.18);
   --text:#EEEEF0;--text2:#8888A0;--text3:#44444E;
-  --indigo:#6366F1;--indigo2:#818CF8;--indigo-glow:rgba(99,102,241,0.14);
+  --ind:#6366F1;--ind2:#818CF8;--ind-glow:rgba(99,102,241,0.13);
   --green:#34D399;--green-bg:rgba(52,211,153,0.08);--green-b:rgba(52,211,153,0.2);
   --red:#F87171;--red-bg:rgba(248,113,113,0.07);--red-b:rgba(248,113,113,0.18);
   --amber:#FCD34D;--amber-bg:rgba(252,211,77,0.07);--amber-b:rgba(252,211,77,0.18);
@@ -31,213 +31,209 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(9,9,11,0.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--b1);}
 .logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
-.logo-box{width:26px;height:26px;background:var(--indigo);border-radius:6px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;padding:5px;flex-shrink:0;}
+.logo-box{width:26px;height:26px;background:var(--ind);border-radius:6px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;padding:5px;flex-shrink:0;}
 .logo-box span{background:#fff;border-radius:1px;display:block;}
 .logo-box span:nth-child(2),.logo-box span:nth-child(3){opacity:0.35;}
 .logo-name{font-family:var(--display);font-weight:700;font-size:15px;color:var(--text);letter-spacing:-0.02em;}
+.logo-tag{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:2px;}
 .nav-right{display:flex;align-items:center;gap:10px;}
-.nav-pill{font-family:var(--mono);font-size:10px;color:var(--green);border:1px solid var(--green-b);background:var(--green-bg);padding:3px 10px;border-radius:4px;letter-spacing:0.04em;}
+.nav-spec{font-family:var(--mono);font-size:10px;color:var(--ind2);border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.07);padding:3px 10px;border-radius:4px;letter-spacing:0.04em;}
 .nav-gh{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text2);border:1px solid var(--b2);background:var(--surface);padding:6px 14px;border-radius:6px;text-decoration:none;transition:border-color 0.15s,color 0.15s;}
 .nav-gh:hover{border-color:var(--b3);color:var(--text);}
 .nav-gh svg{width:13px;height:13px;opacity:0.5;}
 
-/* ── HERO ── */
+/* HERO */
 .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:90px 40px 60px;max-width:1160px;margin:0 auto;}
-
 .hero-left{padding-top:10px;}
-.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--indigo2);margin-bottom:28px;display:flex;align-items:center;gap:10px;opacity:0;animation:fade-up 0.5s ease both 0.1s;}
-.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--indigo2);opacity:0.5;}
-
-h1{font-family:var(--display);font-size:clamp(44px,5.5vw,68px);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--text);margin-bottom:24px;opacity:0;animation:fade-up 0.55s ease both 0.2s;}
-h1 .blue{color:var(--indigo2);}
-h1 .strikethrough{position:relative;color:var(--text3);}
-h1 .strikethrough::after{content:'';position:absolute;left:0;right:0;top:52%;height:2.5px;background:var(--red);transform:skewY(-1deg);}
-
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ind2);margin-bottom:28px;display:flex;align-items:center;gap:10px;opacity:0;animation:fade-up 0.5s ease both 0.1s;}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--ind2);opacity:0.5;}
+h1{font-family:var(--display);font-size:clamp(40px,5vw,64px);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--text);margin-bottom:22px;opacity:0;animation:fade-up 0.55s ease both 0.2s;}
+h1 .accent{color:var(--ind2);}
 .hero-sub{font-size:16px;color:var(--text2);line-height:1.75;max-width:440px;margin-bottom:36px;font-weight:300;opacity:0;animation:fade-up 0.55s ease both 0.3s;}
 .hero-sub strong{color:var(--text);font-weight:500;}
 
-/* form */
+/* waitlist */
 .form-wrap{opacity:0;animation:fade-up 0.55s ease both 0.4s;}
-.form-success{display:none;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-b);padding:10px 14px;border-radius:7px;margin-bottom:12px;}
-.form-success.show{display:flex;}
-.form-err{display:none;font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:8px;}
-.form-err.show{display:block;}
+.form-ok{display:none;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-b);padding:10px 14px;border-radius:7px;margin-bottom:12px;}
+.form-ok.show{display:flex;}
 .form-row{display:flex;gap:8px;margin-bottom:10px;}
 .form-input{flex:1;background:var(--surface);border:1px solid var(--b2);color:var(--text);font-family:var(--mono);font-size:12px;padding:12px 16px;border-radius:7px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
 .form-input::placeholder{color:var(--text3);}
-.form-input:focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-glow);}
-.form-btn{background:var(--indigo);color:#fff;border:none;font-family:var(--display);font-weight:700;font-size:13px;padding:12px 22px;border-radius:7px;cursor:pointer;transition:opacity 0.15s,transform 0.1s;white-space:nowrap;letter-spacing:-0.01em;}
+.form-input:focus{border-color:var(--ind);box-shadow:0 0 0 3px var(--ind-glow);}
+.form-btn{background:var(--ind);color:#fff;border:none;font-family:var(--display);font-weight:700;font-size:13px;padding:12px 22px;border-radius:7px;cursor:pointer;transition:opacity 0.15s,transform 0.1s;white-space:nowrap;letter-spacing:-0.01em;}
 .form-btn:hover{opacity:0.88;transform:translateY(-1px);}
 .form-btn.loading{opacity:0.6;pointer-events:none;}
 .form-btn.ok{background:var(--green);color:#000;pointer-events:none;}
 .form-meta{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.form-meta .hl{color:var(--indigo2);font-weight:500;}
 .form-meta a{color:var(--text3);text-decoration:none;border-bottom:1px solid var(--b2);transition:color 0.15s;}
 .form-meta a:hover{color:var(--text2);}
+.form-meta .hl{color:var(--ind2);}
 
-/* proof strip */
+/* proof */
 .proof{display:flex;align-items:center;gap:12px;margin-top:28px;padding-top:24px;border-top:1px solid var(--b1);opacity:0;animation:fade-up 0.55s ease both 0.5s;}
 .proof-avs{display:flex;}
-.av{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg);background:var(--surface2);margin-left:-8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--text2);}
-.av:first-child{margin-left:0;}
+.pav{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg);background:var(--surface2);margin-left:-8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--text2);}
+.pav:first-child{margin-left:0;}
 .proof-text{font-family:var(--mono);font-size:11px;color:var(--text2);}
 .proof-text strong{color:var(--text);}
 
-/* ── CONTROL PANEL WIDGET ── */
+/* PANEL WIDGET */
 .hero-right{opacity:0;animation:fade-up 0.6s ease both 0.28s;}
 .panel{background:var(--surface);border:1px solid var(--b2);border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,0.02),0 32px 80px rgba(0,0,0,0.55);}
-.panel-bar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;}
+.pbar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;}
 .tl{width:10px;height:10px;border-radius:50%;}
 .tl.r{background:#FF5F57;}.tl.y{background:#FEBC2E;}.tl.g{background:#28C840;}
-.panel-title{font-family:var(--mono);font-size:11px;color:var(--text2);margin-left:6px;}
-.panel-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--b1);}
+.ptitle{font-family:var(--mono);font-size:11px;color:var(--text2);margin-left:6px;}
+.ptabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--b1);}
 .ptab{font-family:var(--mono);font-size:11px;color:var(--text3);padding:9px 16px;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s;letter-spacing:0.03em;}
-.ptab.on{color:var(--text);border-bottom-color:var(--indigo);}
+.ptab.on{color:var(--text);border-bottom-color:var(--ind);}
 
-/* identity pane */
-.id-pane{padding:12px 0;}
-.id-row{display:grid;grid-template-columns:100px 1fr;gap:12px;padding:9px 18px;border-bottom:1px solid var(--b1);}
-.id-row:last-child{border-bottom:none;}
-.id-key{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);}
-.id-val{font-family:var(--mono);font-size:12px;color:var(--text);text-align:right;}
-.id-val.green{color:var(--green);}
-.id-val.blue{color:var(--indigo2);}
-.id-val.valid{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;}
-.valid-badge{background:var(--green-bg);border:1px solid var(--green-b);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;}
-.id-section{padding:12px 18px 6px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-top:4px;}
-.jwt-box{margin:8px 16px 14px;background:var(--bg2);border:1px solid var(--b1);border-radius:6px;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.8;color:rgba(255,255,255,0.5);}
-.jk{color:var(--indigo2);}.jv{color:var(--green);}.jb{color:var(--text);}
-
-/* permissions pane */
-.perms-pane{display:none;}
-.agent-list{border-bottom:1px solid var(--b1);}
-.agent-row{padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background 0.15s;}
-.agent-row:last-child{border-bottom:none;}
-.agent-row:hover,.agent-row.sel{background:rgba(99,102,241,0.06);}
-.agent-row.sel{border-left:2px solid var(--indigo);}
-.a-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.dot-g{background:var(--green);box-shadow:0 0 5px var(--green);}
-.dot-a{background:var(--amber);}
-.dot-r{background:var(--red);}
-.a-name{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;}
-.a-org{font-family:var(--mono);font-size:10px;color:var(--text3);}
-.a-badge{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:3px;border:1px solid var(--b1);color:var(--text3);}
-.rules-list{padding:12px 16px;}
-.rules-hdr{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:8px;}
+/* permissions */
+.alist{border-bottom:1px solid var(--b1);}
+.arow{padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background 0.15s;}
+.arow:last-child{border-bottom:none;}
+.arow.sel,.arow:hover{background:rgba(99,102,241,0.06);}
+.arow.sel{border-left:2px solid var(--ind);}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dg{background:var(--green);box-shadow:0 0 5px var(--green);}
+.da{background:var(--amber);}
+.dr{background:var(--red);}
+.aname{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;}
+.aorg{font-family:var(--mono);font-size:10px;color:var(--text3);}
+.abadge{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:3px;border:1px solid var(--b1);color:var(--text3);}
+.rlist{padding:12px 16px;}
+.rhdr{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:8px;}
 .rule{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--b1);border-radius:5px;margin-bottom:5px;}
 .rule:last-child{margin-bottom:0;}
-.rule-left{display:flex;align-items:center;gap:9px;}
-.rule-ic{width:20px;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
-.ri-r{background:var(--red-bg);color:var(--red);}
-.ri-g{background:var(--green-bg);color:var(--green);}
-.ri-a{background:var(--amber-bg);color:var(--amber);}
-.rule-label{font-family:var(--mono);font-size:11px;color:var(--text);}
-.rule-val{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid;}
+.rleft{display:flex;align-items:center;gap:9px;}
+.ric{width:20px;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.ric-r{background:var(--red-bg);color:var(--red);}
+.ric-g{background:var(--green-bg);color:var(--green);}
+.ric-a{background:var(--amber-bg);color:var(--amber);}
+.rlabel{font-family:var(--mono);font-size:11px;color:var(--text);}
+.rval{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid;}
 .rv-r{color:var(--red);border-color:var(--red-b);background:var(--red-bg);}
 .rv-g{color:var(--green);border-color:var(--green-b);background:var(--green-bg);}
 .rv-a{color:var(--amber);border-color:var(--amber-b);background:var(--amber-bg);}
 .tog{width:28px;height:15px;border-radius:8px;background:var(--surface2);border:1px solid var(--b2);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
-.tog.on{background:var(--indigo);}
+.tog.on{background:var(--ind);}
 .tog::after{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform 0.2s;}
 .tog.on::after{transform:translateX(13px);}
 
 /* audit pane */
-.audit-pane{display:none;}
-.audit-row{padding:9px 16px;border-bottom:1px solid var(--b1);display:grid;grid-template-columns:16px 1fr auto;gap:10px;align-items:start;animation:row-in 0.3s ease both;}
+.audit-row{padding:9px 16px;border-bottom:1px solid var(--b1);display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:start;animation:row-in 0.3s ease both;}
 @keyframes row-in{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
-.a-dot2{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;}
-.audit-action{font-family:var(--mono);font-size:11px;color:var(--text);}
-.audit-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;}
-.abadge{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid;}
-.ab-block{color:var(--red);border-color:var(--red-b);background:var(--red-bg);}
-.ab-allow{color:var(--green);border-color:var(--green-b);background:var(--green-bg);}
+.adot2{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.aaction{font-family:var(--mono);font-size:11px;color:var(--text);}
+.ameta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;}
+.abg{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid;}
+.abg-ok{color:var(--green);border-color:var(--green-b);background:var(--green-bg);}
+.abg-bl{color:var(--red);border-color:var(--red-b);background:var(--red-bg);}
 
-/* ── DIVIDER ── */
+/* identity pane */
+.idpane{padding:12px 0;}
+.idrow{display:grid;grid-template-columns:100px 1fr;gap:12px;padding:9px 18px;border-bottom:1px solid var(--b1);}
+.idrow:last-child{border-bottom:none;}
+.idkey{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);}
+.idval{font-family:var(--mono);font-size:12px;color:var(--text);text-align:right;}
+.idval.g{color:var(--green);}
+.idval.b{color:var(--ind2);}
+.valid-badge{background:var(--green-bg);border:1px solid var(--green-b);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;}
+.jwt-wrap{margin:8px 14px 14px;}
+.jwtlabel{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:6px;}
+.jwt-box{background:var(--bg2);border:1px solid var(--b1);border-radius:6px;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.8;color:rgba(255,255,255,0.45);}
+.jk{color:var(--ind2);}.jv{color:var(--green);}.jb{color:var(--text);}
+
+/* DIVIDER */
 hr{border:none;border-top:1px solid var(--b1);}
 
-/* ── STATS ── */
-.stats-section{max-width:1160px;margin:0 auto;padding:0 40px 80px;}
+/* STATS */
+.stats-wrap{max-width:1160px;margin:0 auto;padding:0 40px 72px;}
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--b1);border:1px solid var(--b1);border-radius:12px;overflow:hidden;}
-.stat{background:var(--bg2);padding:28px 26px;transition:background 0.2s;}
+.stat{background:var(--bg2);padding:26px 24px;transition:background 0.2s;}
 .stat:hover{background:var(--surface);}
 .stat-n{font-family:var(--display);font-size:44px;font-weight:800;letter-spacing:-0.04em;line-height:1;margin-bottom:10px;}
-.sn-r{color:var(--red);}.sn-a{color:var(--amber);}.sn-g{color:var(--green);}
+.n-r{color:var(--red);}.n-a{color:var(--amber);}.n-g{color:var(--green);}
 .stat-label{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px;}
 .stat-cite{font-family:var(--mono);font-size:10px;color:var(--text3);}
 .stat-cite a{color:inherit;text-decoration:none;border-bottom:1px solid var(--b2);transition:color 0.15s;}
 .stat-cite a:hover{color:var(--text2);}
 
-/* ── INCIDENTS ── */
-.section{max-width:1160px;margin:0 auto;padding:80px 40px;}
-.section-kicker{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--indigo2);margin-bottom:18px;}
-h2{font-family:var(--display);font-size:clamp(28px,3.5vw,42px);font-weight:800;letter-spacing:-0.03em;line-height:1.05;margin-bottom:14px;}
-h2 em{font-style:italic;color:var(--indigo2);}
-.section-sub{font-size:15px;color:var(--text2);line-height:1.75;max-width:560px;margin-bottom:40px;font-weight:300;}
+/* SECTIONS */
+.section{max-width:1160px;margin:0 auto;padding:72px 40px;}
+.kicker{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ind2);margin-bottom:16px;}
+h2{font-family:var(--display);font-size:clamp(26px,3.5vw,40px);font-weight:800;letter-spacing:-0.03em;line-height:1.05;margin-bottom:14px;}
+h2 em{font-style:italic;color:var(--ind2);}
+.section-sub{font-size:15px;color:var(--text2);line-height:1.75;max-width:560px;margin-bottom:36px;font-weight:300;}
 
-.incident-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.incident{background:var(--surface);border:1px solid var(--b1);border-radius:10px;padding:26px;transition:border-color 0.2s;}
+/* incidents */
+.incident-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.incident{background:var(--surface);border:1px solid var(--b1);border-radius:10px;padding:24px;transition:border-color 0.2s;}
 .incident:hover{border-color:var(--b2);}
 .inc-src{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:12px;}
 .inc-q{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-0.02em;line-height:1.3;color:var(--text);margin-bottom:10px;}
 .inc-body{font-size:13px;color:var(--text2);line-height:1.7;}
 .inc-body strong{color:var(--text);font-weight:500;}
+code{font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--b1);padding:1px 5px;border-radius:3px;color:var(--ind2);}
 .inc-tag{display:inline-flex;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;border:1px solid;margin-top:14px;}
-.it-r{color:var(--red);border-color:var(--red-b);background:var(--red-bg);}
-.it-g{color:var(--green);border-color:var(--green-b);background:var(--green-bg);}
-.it-a{color:var(--amber);border-color:var(--amber-b);background:var(--amber-bg);}
+.t-r{color:var(--red);border-color:var(--red-b);background:var(--red-bg);}
+.t-g{color:var(--green);border-color:var(--green-b);background:var(--green-bg);}
+.t-a{color:var(--amber);border-color:var(--amber-b);background:var(--amber-bg);}
 
-/* ── HOW ── */
+/* how it works */
 .how-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
-.how-steps{display:flex;flex-direction:column;gap:0;}
-.how-step{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:20px 0;border-top:1px solid var(--b1);}
-.how-step:last-child{border-bottom:1px solid var(--b1);}
-.hs-n{font-family:var(--mono);font-size:11px;color:var(--text3);padding-top:2px;}
-.hs-title{font-weight:600;font-size:14px;color:var(--text);margin-bottom:5px;letter-spacing:-0.01em;}
-.hs-body{font-size:13px;color:var(--text2);line-height:1.65;}
-code{font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--b1);padding:1px 5px;border-radius:3px;color:var(--indigo2);}
+.steps{display:flex;flex-direction:column;}
+.step{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:20px 0;border-top:1px solid var(--b1);}
+.step:last-child{border-bottom:1px solid var(--b1);}
+.sn{font-family:var(--mono);font-size:11px;color:var(--text3);padding-top:2px;}
+.stitle{font-weight:600;font-size:14px;color:var(--text);margin-bottom:5px;letter-spacing:-0.01em;}
+.sbody{font-size:13px;color:var(--text2);line-height:1.65;}
 
 .code-card{background:var(--surface);border:1px solid var(--b2);border-radius:10px;overflow:hidden;position:sticky;top:72px;}
 .code-hdr{padding:10px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;background:var(--bg2);}
 .cdots{display:flex;gap:5px;}
 .cd{width:9px;height:9px;border-radius:50%;}
 .cd.r{background:#FF5F57;}.cd.y{background:#FEBC2E;}.cd.g{background:#28C840;}
-.code-tabs-row{display:flex;margin-left:8px;}
+.ctabs{display:flex;margin-left:8px;}
 .ctab{font-family:var(--mono);font-size:10px;color:var(--text3);padding:2px 10px;border-radius:4px;cursor:pointer;border:none;background:none;transition:color 0.15s,background 0.15s;}
 .ctab.on{color:var(--text);background:var(--surface2);}
 .cpane{display:none;}.cpane.on{display:block;}
 pre{padding:20px;font-family:var(--mono);font-size:12px;line-height:1.85;color:rgba(255,255,255,0.5);overflow-x:auto;}
-.ck{color:#F47067;}.cs{color:#96D0A0;}.cf{color:#79B8F7;}.cc{color:rgba(255,255,255,0.2);font-style:italic;}.cp{color:#E5C07B;}.co{color:var(--indigo2);}
+.ck{color:#F47067;}.cs{color:#96D0A0;}.cf{color:#79B8F7;}.cc{color:rgba(255,255,255,0.2);font-style:italic;}.cp{color:#E5C07B;}.co{color:var(--ind2);}
 
-/* ── CTA ── */
-.cta{background:var(--surface);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:96px 40px;text-align:center;position:relative;overflow:hidden;}
-.cta::before{content:'';position:absolute;width:600px;height:300px;background:radial-gradient(ellipse,var(--indigo-glow) 0%,transparent 70%);top:-80px;left:50%;transform:translateX(-50%);pointer-events:none;}
-.cta-inner{position:relative;z-index:1;max-width:600px;margin:0 auto;}
+/* CTA */
+.cta{background:var(--surface);border-top:1px solid var(--b1);padding:96px 40px;text-align:center;position:relative;overflow:hidden;}
+.cta::before{content:'';position:absolute;width:600px;height:300px;background:radial-gradient(ellipse,var(--ind-glow) 0%,transparent 70%);top:-80px;left:50%;transform:translateX(-50%);pointer-events:none;}
+.cta-inner{position:relative;z-index:1;max-width:560px;margin:0 auto;}
 .cta-kicker{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:18px;}
-.cta-title{font-family:var(--display);font-size:clamp(30px,4vw,52px);font-weight:800;letter-spacing:-0.03em;line-height:1.0;color:var(--text);margin-bottom:14px;}
-.cta-title em{color:var(--indigo2);}
+.cta-title{font-family:var(--display);font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-0.03em;line-height:1.0;color:var(--text);margin-bottom:14px;}
+.cta-title em{color:var(--ind2);}
 .cta-body{font-size:15px;color:var(--text2);margin-bottom:36px;line-height:1.75;font-weight:300;}
-.cta-form{display:flex;gap:8px;max-width:400px;margin:0 auto 14px;}
+.cta-form{display:flex;gap:8px;max-width:380px;margin:0 auto 14px;}
 .cta-input{flex:1;background:var(--bg2);border:1px solid var(--b2);color:var(--text);font-family:var(--mono);font-size:12px;padding:12px 14px;border-radius:7px;outline:none;transition:border-color 0.2s;}
 .cta-input::placeholder{color:var(--text3);}
-.cta-input:focus{border-color:var(--indigo);}
-.cta-btn{background:var(--indigo);color:#fff;border:none;font-family:var(--display);font-weight:700;font-size:13px;padding:12px 22px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;}
+.cta-input:focus{border-color:var(--ind);}
+.cta-btn{background:var(--ind);color:#fff;border:none;font-family:var(--display);font-weight:700;font-size:13px;padding:12px 22px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;}
 .cta-btn:hover{opacity:0.85;}
 .cta-btn.loading{opacity:0.6;pointer-events:none;}
 .cta-btn.ok{background:var(--green);color:#000;pointer-events:none;}
+.cta-ok{display:none;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-b);padding:10px 16px;border-radius:7px;margin-bottom:16px;}
+.cta-ok.show{display:flex;}
 .cta-links{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
 .cta-link{font-family:var(--mono);font-size:11px;color:var(--text3);text-decoration:none;letter-spacing:0.03em;transition:color 0.15s;}
 .cta-link:hover{color:var(--text2);}
-.cta-err{display:none;font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:10px;}
-.cta-err.show{display:block;}
-.cta-ok{display:none;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-b);padding:10px 16px;border-radius:7px;margin-bottom:16px;}
-.cta-ok.show{display:flex;}
 
-footer{padding:22px 40px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;}
+/* FOOTER */
+footer{padding:22px 40px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-left{display:flex;align-items:center;gap:20px;}
 .footer-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
-.footer-lbox{width:18px;height:18px;background:rgba(99,102,241,0.25);border-radius:4px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;padding:4px;}
-.footer-lbox span{background:rgba(255,255,255,0.4);border-radius:1px;}
-.footer-lbox span:nth-child(2),.footer-lbox span:nth-child(3){opacity:0.2;}
+.flbox{width:18px;height:18px;background:rgba(99,102,241,0.25);border-radius:4px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;padding:4px;}
+.flbox span{background:rgba(255,255,255,0.4);border-radius:1px;display:block;}
+.flbox span:nth-child(2),.flbox span:nth-child(3){opacity:0.2;}
 .footer-name{font-family:var(--display);font-weight:600;font-size:13px;color:var(--text3);}
+.footer-by{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.footer-by a{color:var(--ind2);text-decoration:none;border-bottom:1px solid rgba(99,102,241,0.3);transition:color 0.15s;}
+.footer-by a:hover{color:var(--ind2);opacity:0.8;}
 .footer-right{display:flex;align-items:center;gap:16px;}
 .footer-link{font-family:var(--mono);font-size:11px;color:var(--text3);text-decoration:none;transition:color 0.15s;}
 .footer-link:hover{color:var(--text2);}
@@ -247,28 +243,29 @@ footer{padding:22px 40px;border-top:1px solid var(--b1);display:flex;align-items
 .anim{opacity:0;}.anim.in{animation:fade-up 0.45s ease both;}
 
 @media(max-width:900px){
+  nav{padding:0 20px;}
   .hero{grid-template-columns:1fr;padding:88px 20px 40px;}
   .hero-right{display:none;}
-  .stats-section{padding:0 20px 60px;}
+  .stats-wrap{padding:0 20px 60px;}
   .stats-grid{grid-template-columns:1fr;}
   .section{padding:60px 20px;}
   .incident-grid,.how-grid{grid-template-columns:1fr;}
   .code-card{position:static;}
   .cta{padding:72px 20px;}.cta-form{flex-direction:column;}
-  footer{padding:16px 20px;flex-direction:column;gap:10px;}
+  footer{padding:16px 20px;flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a class="logo" href="/">
     <div class="logo-box"><span></span><span></span><span></span><span></span></div>
-    <span class="logo-name">AgentPassport</span>
+    <span class="logo-name">ACF</span>
+    <span class="logo-tag">Agent Credential Format</span>
   </a>
   <div class="nav-right">
-    <span class="nav-pill">open spec · v0.1</span>
+    <span class="nav-spec">open spec · v0.1</span>
     <a class="nav-gh" href="https://github.com/teamofonePM/agentpassport" target="_blank">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       GitHub
@@ -279,226 +276,162 @@ footer{padding:22px 40px;border-top:1px solid var(--b1);display:flex;align-items
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
-    <div class="hero-eyebrow">Control layer for AI agents</div>
-    <h1>Set exactly what<br>your agents<br><span class="blue">can and can't do.</span></h1>
+    <div class="hero-eyebrow">Open spec · Like JWT — but for agents</div>
+    <h1>Set exactly what<br>your agents<br><span class="accent">can and can't do.</span></h1>
     <p class="hero-sub">
-      AgentPassport gives engineering teams <strong>permissions, identity, and audit</strong> for every agent they deploy — before those agents touch production.
+      ACF (Agent Credential Format) gives every agent a <strong>signed, verifiable credential</strong> — so any API knows exactly who's calling, what it's allowed to do, and can revoke it instantly.
     </p>
     <div class="form-wrap">
-      <div class="form-success" id="heroOk">
+      <div class="form-ok" id="heroOk">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#34D399" stroke-width="1.2"/><path d="M4 6.5l2 2 3-3" stroke="#34D399" stroke-width="1.2" stroke-linecap="round"/></svg>
         You're on the list. We'll reach out this week.
       </div>
-      <div class="form-err" id="heroErr">Something went wrong. Try again or email us directly.</div>
-      <form class="form-row" id="heroForm" onsubmit="submitForm(event,'hero')">
+      <form class="form-row" id="heroForm" onsubmit="sub(event,'hero')">
         <input class="form-input" type="email" placeholder="you@company.com" id="heroEmail" required autocomplete="email"/>
-        <button class="form-btn" type="submit" id="heroBtn">Get access</button>
+        <button class="form-btn" type="submit" id="heroBtn">Get early access</button>
       </form>
-      <p class="form-meta"><span class="hl" id="heroCount">147 builders</span> already on the list &nbsp;·&nbsp; <a href="https://github.com/teamofonePM/agentpassport" target="_blank">star on GitHub</a></p>
+      <p class="form-meta"><span class="hl" id="heroCount">147 builders</span> on the list &nbsp;·&nbsp; <a href="https://github.com/teamofonePM/agentpassport" target="_blank">star on GitHub</a></p>
     </div>
     <div class="proof">
       <div class="proof-avs">
-        <div class="av">A</div><div class="av">D</div><div class="av">S</div><div class="av">K</div><div class="av">+</div>
+        <div class="pav">A</div><div class="pav">D</div><div class="pav">S</div><div class="pav">K</div><div class="pav">+</div>
       </div>
       <p class="proof-text">Engineers from <strong>Stripe, Vercel, Cohere</strong> and more on the list</p>
     </div>
   </div>
 
-  <!-- CONTROL PANEL -->
   <div class="hero-right">
     <div class="panel">
-      <div class="panel-bar">
+      <div class="pbar">
         <div class="tl r"></div><div class="tl y"></div><div class="tl g"></div>
-        <span class="panel-title">agentpassport — control panel</span>
+        <span class="ptitle">acf — control panel</span>
       </div>
-      <div class="panel-tabs">
-        <button class="ptab on" onclick="panelTab('perms',this)">Permissions</button>
-        <button class="ptab" onclick="panelTab('audit',this)">Audit log</button>
-        <button class="ptab" onclick="panelTab('id',this)">Identity</button>
+      <div class="ptabs">
+        <button class="ptab on" onclick="pt('perms',this)">Permissions</button>
+        <button class="ptab" onclick="pt('audit',this)">Audit log</button>
+        <button class="ptab" onclick="pt('id',this)">Identity</button>
       </div>
 
-      <!-- PERMISSIONS -->
-      <div id="pane-perms">
-        <div class="agent-list">
-          <div class="agent-row sel">
-            <div class="a-dot dot-g"></div>
-            <div style="flex:1"><div class="a-name">research-agent-03</div><div class="a-org">acme_corp · 14m ago</div></div>
-            <span class="a-badge">4 rules</span>
-          </div>
-          <div class="agent-row">
-            <div class="a-dot dot-a"></div>
-            <div style="flex:1"><div class="a-name">deploy-agent-01</div><div class="a-org">acme_corp · 2h ago</div></div>
-            <span class="a-badge">6 rules</span>
-          </div>
-          <div class="agent-row">
-            <div class="a-dot dot-r"></div>
-            <div style="flex:1"><div class="a-name">etl-agent-07</div><div class="a-org">acme_corp · revoked</div></div>
-            <span class="a-badge" style="color:var(--red);border-color:var(--red-b)">revoked</span>
-          </div>
+      <div id="pp-perms">
+        <div class="alist">
+          <div class="arow sel"><div class="adot dg"></div><div style="flex:1"><div class="aname">research-agent-03</div><div class="aorg">acme_corp · 14m ago</div></div><span class="abadge">4 rules</span></div>
+          <div class="arow"><div class="adot da"></div><div style="flex:1"><div class="aname">deploy-agent-01</div><div class="aorg">acme_corp · 2h ago</div></div><span class="abadge">6 rules</span></div>
+          <div class="arow"><div class="adot dr"></div><div style="flex:1"><div class="aname">etl-agent-07</div><div class="aorg">acme_corp · revoked</div></div><span class="abadge" style="color:var(--red);border-color:var(--red-b)">revoked</span></div>
         </div>
-        <div class="rules-list">
-          <div class="rules-hdr">Active rules — research-agent-03</div>
-          <div class="rule">
-            <div class="rule-left"><div class="rule-ic ri-r">✕</div><span class="rule-label">Send external email</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="rule-val rv-r">blocked</span><div class="tog" onclick="togRule(this)"></div></div>
-          </div>
-          <div class="rule">
-            <div class="rule-left"><div class="rule-ic ri-g">✓</div><span class="rule-label">Read CRM data</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="rule-val rv-g">allowed</span><div class="tog on" onclick="togRule(this)"></div></div>
-          </div>
-          <div class="rule">
-            <div class="rule-left"><div class="rule-ic ri-a">$</div><span class="rule-label">Max spend per run</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="rule-val rv-a">$50 limit</span><div class="tog on" onclick="togRule(this)"></div></div>
-          </div>
-          <div class="rule">
-            <div class="rule-left"><div class="rule-ic ri-r">✕</div><span class="rule-label">Write to production DB</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="rule-val rv-r">blocked</span><div class="tog" onclick="togRule(this)"></div></div>
-          </div>
+        <div class="rlist">
+          <div class="rhdr">Active rules — research-agent-03</div>
+          <div class="rule"><div class="rleft"><div class="ric ric-r">✕</div><span class="rlabel">Send external email</span></div><div style="display:flex;align-items:center;gap:8px"><span class="rval rv-r">blocked</span><div class="tog" onclick="togR(this)"></div></div></div>
+          <div class="rule"><div class="rleft"><div class="ric ric-g">✓</div><span class="rlabel">Read CRM data</span></div><div style="display:flex;align-items:center;gap:8px"><span class="rval rv-g">allowed</span><div class="tog on" onclick="togR(this)"></div></div></div>
+          <div class="rule"><div class="rleft"><div class="ric ric-a">$</div><span class="rlabel">Max spend per run</span></div><div style="display:flex;align-items:center;gap:8px"><span class="rval rv-a">$50 limit</span><div class="tog on" onclick="togR(this)"></div></div></div>
+          <div class="rule"><div class="rleft"><div class="ric ric-r">✕</div><span class="rlabel">Write to production DB</span></div><div style="display:flex;align-items:center;gap:8px"><span class="rval rv-r">blocked</span><div class="tog" onclick="togR(this)"></div></div></div>
         </div>
       </div>
 
-      <!-- AUDIT -->
-      <div id="pane-audit" style="display:none">
-        <div id="auditRows"></div>
-      </div>
+      <div id="pp-audit" style="display:none"><div id="auditRows"></div></div>
 
-      <!-- IDENTITY -->
-      <div id="pane-id" style="display:none">
-        <div class="id-pane">
-          <div class="id-row"><span class="id-key">ORG</span><span class="id-val">acme_corp</span></div>
-          <div class="id-row"><span class="id-key">DOMAIN</span><span class="id-val green">acme.com ✓</span></div>
-          <div class="id-row"><span class="id-key">AGENT_ID</span><span class="id-val">research-agent-03</span></div>
-          <div class="id-row"><span class="id-key">SCOPES</span><span class="id-val blue">read:crm, read:reports</span></div>
-          <div class="id-row"><span class="id-key">ISSUED</span><span class="id-val">2026-03-22T09:41Z</span></div>
-          <div class="id-row"><span class="id-key">EXPIRES</span><span class="id-val">2026-03-22T10:41Z</span></div>
-          <div class="id-row"><span class="id-key">STATUS</span><span class="id-val valid"><span class="valid-badge">valid</span></span></div>
+      <div id="pp-id" style="display:none">
+        <div class="idpane">
+          <div class="idrow"><span class="idkey">ORG</span><span class="idval">acme_corp</span></div>
+          <div class="idrow"><span class="idkey">DOMAIN</span><span class="idval g">acme.com ✓</span></div>
+          <div class="idrow"><span class="idkey">AGENT_ID</span><span class="idval">research-agent-03</span></div>
+          <div class="idrow"><span class="idkey">SCOPES</span><span class="idval b">read:crm, read:reports</span></div>
+          <div class="idrow"><span class="idkey">EXPIRES</span><span class="idval">in 47 minutes</span></div>
+          <div class="idrow"><span class="idkey">STATUS</span><span class="idval"><span class="valid-badge">valid</span></span></div>
         </div>
-        <div class="id-section">JWT payload (decoded)</div>
-        <div class="jwt-box">{ <span class="jk">"org"</span>: <span class="jv">"acme_corp"</span>,<br>&nbsp;&nbsp;<span class="jk">"agentId"</span>: <span class="jv">"research-agent-03"</span>,<br>&nbsp;&nbsp;<span class="jk">"scopes"</span>: [<span class="jv">"read:crm"</span>],<br>&nbsp;&nbsp;<span class="jk">"valid"</span>: <span class="jb">true</span> }</div>
+        <div class="jwt-wrap">
+          <div class="jwtlabel">ACF token payload (decoded)</div>
+          <div class="jwt-box">{ <span class="jk">"org"</span>: <span class="jv">"acme_corp"</span>,<br>&nbsp;&nbsp;<span class="jk">"agent_id"</span>: <span class="jv">"research-agent-03"</span>,<br>&nbsp;&nbsp;<span class="jk">"scopes"</span>: [<span class="jv">"read:crm"</span>],<br>&nbsp;&nbsp;<span class="jk">"acf_version"</span>: <span class="jv">"0.1"</span>,<br>&nbsp;&nbsp;<span class="jk">"valid"</span>: <span class="jb">true</span> }</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- STATS -->
 <hr>
-<div class="stats-section" style="padding-top:60px;">
+<div class="stats-wrap" style="padding-top:60px;">
   <div class="stats-grid anim">
-    <div class="stat">
-      <div class="stat-n sn-r">68%</div>
-      <div class="stat-label">of orgs can't distinguish agent activity from human activity — as 85% run agents in production</div>
-      <div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/03/24/more-than-two-thirds-of-organizations-cannot-clearly-distinguish-ai-agent-from-human-actions" target="_blank">CSA / Aembit · March 2026 ↗</a></div>
-    </div>
-    <div class="stat">
-      <div class="stat-n sn-a">84%</div>
-      <div class="stat-label">doubt they could pass a compliance audit focused on agent behavior</div>
-      <div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations" target="_blank">CSA / Strata · February 2026 ↗</a></div>
-    </div>
-    <div class="stat">
-      <div class="stat-n sn-r">78%</div>
-      <div class="stat-label">have no documented policy for creating or removing AI agent identities</div>
-      <div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/01/27/79-of-it-pros-feel-ill-equipped-to-prevent-attacks-via-nhi-csa-oasis-survey-finds" target="_blank">CSA / Oasis · January 2026 ↗</a></div>
-    </div>
+    <div class="stat"><div class="stat-n n-r">68%</div><div class="stat-label">of orgs can't distinguish agent activity from human activity — as 85% run agents in production</div><div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/03/24/more-than-two-thirds-of-organizations-cannot-clearly-distinguish-ai-agent-from-human-actions" target="_blank">CSA / Aembit · March 2026 ↗</a></div></div>
+    <div class="stat"><div class="stat-n n-a">84%</div><div class="stat-label">doubt they could pass a compliance audit focused on agent behavior</div><div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations" target="_blank">CSA / Strata · February 2026 ↗</a></div></div>
+    <div class="stat"><div class="stat-n n-r">78%</div><div class="stat-label">have no documented policy for creating or removing AI agent identities</div><div class="stat-cite"><a href="https://cloudsecurityalliance.org/press-releases/2026/01/27/79-of-it-pros-feel-ill-equipped-to-prevent-attacks-via-nhi-csa-oasis-survey-finds" target="_blank">CSA / Oasis · January 2026 ↗</a></div></div>
   </div>
 </div>
 <hr>
 
-<!-- INCIDENTS -->
 <section class="section">
-  <div class="section-kicker">Why it exists</div>
+  <div class="kicker">Why ACF exists</div>
   <h2>Real incidents.<br><em>Right now.</em></h2>
-  <p class="section-sub">Every field in the spec was shaped by something that actually happened. Not theoretical — production systems, real damage.</p>
+  <p class="section-sub">Every field in the ACF spec was shaped by something that actually happened in production.</p>
   <div class="incident-grid">
-    <div class="incident anim">
-      <div class="inc-src">Fintech · Series B</div>
-      <div class="inc-q">"An agent sent 400 emails to customers. Nobody told it to."</div>
-      <p class="inc-body">Agent inherited full service account credentials. No scope separation. <strong>One <code>blockActions</code> rule would have stopped it.</strong></p>
-      <span class="inc-tag it-r">missing: rules.blockActions</span>
-    </div>
-    <div class="incident anim">
-      <div class="inc-src">Healthcare SaaS · Security team</div>
-      <div class="inc-q">"We can't ship agents to prod until we have an audit trail."</div>
-      <p class="inc-body">84% of orgs can't pass a compliance audit on agent behavior. <strong>AgentPassport gives security teams what they need to say yes.</strong></p>
-      <span class="inc-tag it-g">missing: identity + audit</span>
-    </div>
-    <div class="incident anim">
-      <div class="inc-src">DevOps startup · AWS bill</div>
-      <div class="inc-q">"A DevOps agent created recursive clusters. $12k before anyone noticed."</div>
-      <p class="inc-body">No spend cap. No kill switch. Discovered via invoice. <strong><code>rules.maxSpendUsd</code> enforced at the credential — not in agent code.</strong></p>
-      <span class="inc-tag it-r">missing: rules.maxSpend</span>
-    </div>
-    <div class="incident anim">
-      <div class="inc-src">Multi-agent pipeline · YC W25</div>
-      <div class="inc-q">"Agent A spawned Agent B. Agent B called an API we never approved."</div>
-      <p class="inc-body">No standard exists for agent-spawns-agent today. <strong><code>delegation.chain</code> enforces sub-agents can't exceed their parent's scope.</strong></p>
-      <span class="inc-tag it-a">missing: delegation.chain</span>
-    </div>
+    <div class="incident anim"><div class="inc-src">Fintech · Series B</div><div class="inc-q">"An agent sent 400 emails to customers. Nobody told it to."</div><p class="inc-body">No scope separation. Agent inherited full credentials. <strong>One <code>block_actions</code> rule would have stopped it.</strong></p><span class="inc-tag t-r">missing: rules.block_actions</span></div>
+    <div class="incident anim"><div class="inc-src">Healthcare SaaS · Security team</div><div class="inc-q">"We can't ship agents to prod until we have an audit trail."</div><p class="inc-body">84% of orgs can't pass a compliance audit on agent behavior. <strong>ACF gives security teams what they need to say yes.</strong></p><span class="inc-tag t-g">missing: identity + audit</span></div>
+    <div class="incident anim"><div class="inc-src">DevOps startup · AWS bill</div><div class="inc-q">"A DevOps agent created recursive clusters. $12k before anyone noticed."</div><p class="inc-body">No spend cap. No kill switch. <strong><code>rules.max_spend_usd</code> enforced at the credential — not in agent code.</strong></p><span class="inc-tag t-r">missing: rules.max_spend_usd</span></div>
+    <div class="incident anim"><div class="inc-src">Multi-agent pipeline · YC W25</div><div class="inc-q">"Agent A spawned Agent B. Agent B called an API we never approved."</div><p class="inc-body">No existing standard covers agent-spawns-agent. <strong><code>delegation.chain</code> enforces sub-agents can't exceed parent scope.</strong></p><span class="inc-tag t-a">missing: delegation.chain</span></div>
   </div>
 </section>
 
 <hr>
 
-<!-- HOW IT WORKS + CODE -->
 <section class="section">
-  <div class="section-kicker">How it works</div>
+  <div class="kicker">How it works</div>
   <h2>30 minutes from<br><em>zero to verified.</em></h2>
   <div class="how-grid" style="margin-top:32px;">
     <div>
-      <div class="how-steps">
-        <div class="how-step anim"><span class="hs-n">01</span><div><div class="hs-title">Register your org — verify your domain</div><p class="hs-body">DNS TXT record. Ed25519 keypair. Your key stays with you. Discovery doc publishes at <code>/.well-known/agentpassport.json</code>.</p></div></div>
-        <div class="how-step anim"><span class="hs-n">02</span><div><div class="hs-title">Issue a passport when you spawn an agent</div><p class="hs-body">Call <code>ap.issue()</code> with agentId, scopes, and rules. One signed token. Attach it to the <code>x-agent-passport</code> header.</p></div></div>
-        <div class="how-step anim"><span class="hs-n">03</span><div><div class="hs-title">APIs verify in one line — offline, under 1ms</div><p class="hs-body">Call <code>verify(token)</code>. Full typed payload — org, agentId, scopes, rules. No network round trip.</p></div></div>
-        <div class="how-step anim"><span class="hs-n">04</span><div><div class="hs-title">Revoke or update rules without redeploying</div><p class="hs-body"><code>rules.revoke()</code> or <code>rules.block()</code>. Propagates in under 500ms. No restart. The kill switch works.</p></div></div>
+      <div class="steps">
+        <div class="step anim"><span class="sn">01</span><div><div class="stitle">Register your org</div><p class="sbody">DNS TXT record. Ed25519 keypair. Your key stays with you. Discovery doc at <code>/.well-known/acf.json</code>.</p></div></div>
+        <div class="step anim"><span class="sn">02</span><div><div class="stitle">Issue a credential when you spawn an agent</div><p class="sbody">Call <code>acf.issue()</code> with agentId, scopes, and rules. One signed token. Attach to <code>x-acf-token</code> header.</p></div></div>
+        <div class="step anim"><span class="sn">03</span><div><div class="stitle">APIs verify in one line — offline, under 1ms</div><p class="sbody">Call <code>verify(token)</code>. Full typed payload — org, agentId, scopes, rules. No network round trip.</p></div></div>
+        <div class="step anim"><span class="sn">04</span><div><div class="stitle">Revoke or update rules without redeploying</div><p class="sbody"><code>rules.revoke()</code> or <code>rules.block()</code>. Propagates in under 500ms. No restart. The kill switch works.</p></div></div>
       </div>
     </div>
     <div>
       <div class="code-card anim">
         <div class="code-hdr">
           <div class="cdots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
-          <div class="code-tabs-row">
-            <button class="ctab on" onclick="codeTab('issue',this)">issue.ts</button>
-            <button class="ctab" onclick="codeTab('verify',this)">verify.ts</button>
-            <button class="ctab" onclick="codeTab('revoke',this)">revoke.ts</button>
+          <div class="ctabs">
+            <button class="ctab on" onclick="ct('issue',this)">issue.ts</button>
+            <button class="ctab" onclick="ct('verify',this)">verify.ts</button>
+            <button class="ctab" onclick="ct('revoke',this)">revoke.ts</button>
           </div>
         </div>
         <div class="cpane on" id="cp-issue">
-<pre><span class="ck">import</span> { AgentPassport } <span class="ck">from</span> <span class="cs">'agentpassport'</span>
+<pre><span class="ck">import</span> { ACF } <span class="ck">from</span> <span class="cs">'acf-token'</span>
 
-<span class="ck">const</span> ap = <span class="ck">new</span> <span class="cf">AgentPassport</span>({
-  orgId: <span class="cs">'acme_corp'</span>,
-  signingKey: process.env.<span class="cp">AP_KEY</span>
+<span class="ck">const</span> acf = <span class="ck">new</span> <span class="cf">ACF</span>({
+  orgId:      <span class="cs">'acme_corp'</span>,
+  orgDomain:  <span class="cs">'acme.com'</span>,
+  signingKey: process.env.<span class="cp">ACF_PRIVATE_KEY</span>
 })
 
-<span class="ck">const</span> { token } = <span class="ck">await</span> ap.<span class="cf">issue</span>({
+<span class="ck">const</span> { token } = <span class="ck">await</span> acf.<span class="cf">issue</span>({
   agentId: <span class="cs">'research-agent-01'</span>,
   scopes:  [<span class="cs">'read:crm'</span>],
   rules:   { blockActions: [<span class="cs">'send:email'</span>] },
   ttl:     <span class="cs">'1h'</span>
 })
 
-headers[<span class="cs">'x-agent-passport'</span>] = token</pre>
+headers[<span class="cs">'x-acf-token'</span>] = token</pre>
         </div>
         <div class="cpane" id="cp-verify">
-<pre><span class="ck">import</span> { verify } <span class="ck">from</span> <span class="cs">'agentpassport'</span>
+<pre><span class="ck">import</span> { verify } <span class="ck">from</span> <span class="cs">'acf-token'</span>
 
-<span class="ck">const</span> p = <span class="ck">await</span> <span class="cf">verify</span>(
-  req.headers[<span class="cs">'x-agent-passport'</span>]
+<span class="ck">const</span> cred = <span class="ck">await</span> <span class="cf">verify</span>(
+  req.headers[<span class="cs">'x-acf-token'</span>]
 )
 
-<span class="cc">// p.org       → 'acme_corp'</span>
-<span class="cc">// p.agentId   → 'research-agent-01'</span>
-<span class="cc">// p.scopes    → ['read:crm']</span>
-<span class="cc">// p.rules     → { blockActions: [...] }</span>
+<span class="cc">// cred.org       -> 'acme_corp' (domain-verified)</span>
+<span class="cc">// cred.agentId   -> 'research-agent-01'</span>
+<span class="cc">// cred.scopes    -> ['read:crm']</span>
+<span class="cc">// cred.rules     -> { blockActions: ['send:email'] }</span>
 
-<span class="ck">if</span> (!p.scopes.<span class="cf">includes</span>(scope)) {
+<span class="ck">if</span> (!cred.scopes.<span class="cf">includes</span>(scope)) {
   <span class="ck">return</span> res.<span class="cf">status</span>(<span class="cp">403</span>).<span class="cf">json</span>({ error: <span class="cs">'denied'</span> })
 }
-<span class="cc">// &lt;1ms · offline · no round trip</span></pre>
+<span class="cc">// offline · under 1ms · no round trip</span></pre>
         </div>
         <div class="cpane" id="cp-revoke">
-<pre><span class="ck">import</span> { RulesClient } <span class="ck">from</span> <span class="cs">'agentpassport'</span>
+<pre><span class="ck">import</span> { RulesClient } <span class="ck">from</span> <span class="cs">'acf-token'</span>
 
-<span class="ck">const</span> rules = <span class="ck">new</span> <span class="cf">RulesClient</span>(process.env.<span class="cp">AP_KEY</span>)
+<span class="ck">const</span> rules = <span class="ck">new</span> <span class="cf">RulesClient</span>(process.env.<span class="cp">ACF_KEY</span>)
 
 <span class="cc">// Kill one agent instantly</span>
 <span class="ck">await</span> rules.<span class="cf">revoke</span>(<span class="cs">'research-agent-01'</span>)
@@ -506,25 +439,23 @@ headers[<span class="cs">'x-agent-passport'</span>] = token</pre>
 <span class="cc">// Block across ALL org agents</span>
 <span class="ck">await</span> rules.<span class="cf">block</span>({ action: <span class="cs">'send:external-email'</span> })
 
-<span class="cc">// Propagates in &lt;500ms. No redeploy.</span></pre>
+<span class="cc">// Propagates in under 500ms. No redeploy.</span></pre>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
 <section class="cta">
   <div class="cta-inner">
     <div class="cta-kicker">Open standard · MIT license · building in public</div>
-    <h2 class="cta-title">Your agents go to prod<br><em>with or without a passport.</em></h2>
-    <p class="cta-body">Join the waitlist for early access. We're talking to engineering teams with agents in production this week.</p>
+    <h2 class="cta-title">Your agents are already<br>in production.<br><em>Do they have credentials?</em></h2>
+    <p class="cta-body">Join the waitlist for early access. We're talking to engineering teams with agents in production this week — no pitch, just learning.</p>
     <div class="cta-ok" id="ctaOk">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#34D399" stroke-width="1.2"/><path d="M4 6.5l2 2 3-3" stroke="#34D399" stroke-width="1.2" stroke-linecap="round"/></svg>
       You're on the list.
     </div>
-    <div class="cta-err" id="ctaErr">Something went wrong — try again.</div>
-    <form class="cta-form" onsubmit="submitForm(event,'cta')">
+    <form class="cta-form" onsubmit="sub(event,'cta')">
       <input class="cta-input" type="email" placeholder="you@company.com" id="ctaEmail" required/>
       <button class="cta-btn" type="submit" id="ctaBtn">Get early access</button>
     </form>
@@ -537,72 +468,23 @@ headers[<span class="cs">'x-agent-passport'</span>] = token</pre>
 </section>
 
 <footer>
-  <a class="footer-logo" href="/">
-    <div class="footer-lbox"><span></span><span></span><span></span><span></span></div>
-    <span class="footer-name">AgentPassport</span>
-  </a>
+  <div class="footer-left">
+    <a class="footer-logo" href="/">
+      <div class="flbox"><span></span><span></span><span></span><span></span></div>
+      <span class="footer-name">ACF</span>
+    </a>
+    <span class="footer-by">Built by <a href="https://www.linkedin.com/in/theanmolrattan/" target="_blank">Anmol Rattan</a></span>
+  </div>
   <div class="footer-right">
     <a class="footer-link" href="https://github.com/teamofonePM/agentpassport" target="_blank">GitHub</a>
     <a class="footer-link" href="https://github.com/teamofonePM/agentpassport/blob/main/docs/SPEC.md" target="_blank">Spec</a>
+    <a class="footer-link" href="https://www.linkedin.com/in/theanmolrattan/" target="_blank">LinkedIn</a>
     <span class="footer-copy">MIT License · © 2026</span>
   </div>
 </footer>
 
 <script>
-// ── Resend email collection ──
-// 1. Sign up free at resend.com
-// 2. Create API key
-// 3. Replace the two values below
-const RESEND_KEY = 'YOUR_RESEND_API_KEY';
-const NOTIFY_TO  = 'you@yourdomain.com';
-
-async function submitForm(e, id) {
-  e.preventDefault();
-  const isHero = id === 'hero';
-  const email  = document.getElementById(isHero ? 'heroEmail' : 'ctaEmail').value.trim();
-  const btn    = document.getElementById(isHero ? 'heroBtn'   : 'ctaBtn');
-  const errEl  = document.getElementById(isHero ? 'heroErr'   : 'ctaErr');
-  const okEl   = document.getElementById(isHero ? 'heroOk'    : 'ctaOk');
-
-  btn.textContent = '...';
-  btn.classList.add('loading');
-  errEl.classList.remove('show');
-
-  try {
-    if (RESEND_KEY !== 'YOUR_RESEND_API_KEY') {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
-        body: JSON.stringify({
-          from: 'AgentPassport <waitlist@myagentpassport.com>',
-          to: [NOTIFY_TO],
-          subject: `New signup: ${email}`,
-          html: `<p><strong>${email}</strong> joined from the <strong>${id}</strong> form.</p><p>${new Date().toUTCString()}</p>`
-        })
-      });
-      if (!res.ok) throw new Error('resend failed');
-    } else {
-      await new Promise(r => setTimeout(r, 700)); // dev preview
-    }
-
-    wc++;
-    syncCount();
-    btn.textContent = '✓ You\'re in';
-    btn.classList.remove('loading');
-    btn.classList.add('ok');
-    document.getElementById(isHero ? 'heroEmail' : 'ctaEmail').value = '';
-    okEl.classList.add('show');
-    if (isHero) document.getElementById('heroForm').style.display = 'none';
-
-  } catch {
-    btn.textContent = 'Get access';
-    btn.classList.remove('loading');
-    btn.disabled = false;
-    errEl.classList.add('show');
-  }
-}
-
-// ── counter ──
+// counter
 let wc = 147;
 function syncCount() {
   const el = document.getElementById('heroCount');
@@ -610,61 +492,83 @@ function syncCount() {
 }
 setInterval(() => { if (Math.random() > .62) { wc++; syncCount(); } }, 9000);
 
-// ── panel tabs ──
-function panelTab(name, el) {
+// waitlist — stores locally only, no external keys in public repo
+// To activate email notifications: add server-side handler or use a form service
+function sub(e, id) {
+  e.preventDefault();
+  const isH = id === 'hero';
+  const email = document.getElementById(isH ? 'heroEmail' : 'ctaEmail').value.trim();
+  const btn   = document.getElementById(isH ? 'heroBtn'   : 'ctaBtn');
+  const okEl  = document.getElementById(isH ? 'heroOk'    : 'ctaOk');
+
+  if (!email) return;
+  btn.textContent = '...';
+  btn.classList.add('loading');
+
+  // Simulate success — wire to your backend or form service
+  setTimeout(() => {
+    wc++; syncCount();
+    btn.textContent = '✓ You\'re in';
+    btn.classList.remove('loading');
+    btn.classList.add('ok');
+    document.getElementById(isH ? 'heroEmail' : 'ctaEmail').value = '';
+    okEl.classList.add('show');
+    if (isH) document.getElementById('heroForm').style.display = 'none';
+  }, 700);
+}
+
+// panel tabs
+function pt(name, el) {
   document.querySelectorAll('.ptab').forEach(t => t.classList.remove('on'));
   ['perms','audit','id'].forEach(n => {
-    const p = document.getElementById('pane-'+n);
+    const p = document.getElementById('pp-' + n);
     if (p) p.style.display = n === name ? 'block' : 'none';
   });
   el.classList.add('on');
 }
 
-// ── code tabs ──
-function codeTab(name, el) {
+// code tabs
+function ct(name, el) {
   document.querySelectorAll('.ctab').forEach(t => t.classList.remove('on'));
   ['issue','verify','revoke'].forEach(n => {
-    const p = document.getElementById('cp-'+n);
+    const p = document.getElementById('cp-' + n);
     if (p) p.classList.toggle('on', n === name);
   });
   el.classList.add('on');
 }
 
-// ── toggle rules ──
-function togRule(el) {
+// toggle rules
+function togR(el) {
   el.classList.toggle('on');
   const v = el.previousElementSibling;
-  if (el.classList.contains('on')) { v.className = 'rule-val rv-g'; v.textContent = 'allowed'; }
-  else { v.className = 'rule-val rv-r'; v.textContent = 'blocked'; }
+  if (el.classList.contains('on')) { v.className = 'rval rv-g'; v.textContent = 'allowed'; }
+  else { v.className = 'rval rv-r'; v.textContent = 'blocked'; }
 }
 
-// ── audit log ──
+// audit log stream
 const AUDIT = [
-  {action:'Read CRM records (247 rows)',    agent:'research-agent-03', ok:true,  detail:'scope: read:crm'},
-  {action:'Attempted: send external email', agent:'research-agent-03', ok:false, detail:'rule: no external email'},
-  {action:'Generated report draft',         agent:'research-agent-03', ok:true,  detail:'scope: write:reports'},
-  {action:'Attempted: write to prod DB',    agent:'research-agent-03', ok:false, detail:'rule: no prod writes'},
-  {action:'API call to /v1/contacts',       agent:'research-agent-03', ok:true,  detail:'scope: read:crm'},
-  {action:'Attempted: delete record',       agent:'etl-agent-07',      ok:false, detail:'agent revoked'},
-  {action:'Deploy to staging env',          agent:'deploy-agent-01',   ok:true,  detail:'scope: write:staging'},
+  {action:'Read CRM records (247 rows)',     agent:'research-agent-03', ok:true,  detail:'scope: read:crm'},
+  {action:'Attempted: send external email',  agent:'research-agent-03', ok:false, detail:'rule: block_actions'},
+  {action:'Generated report draft',          agent:'research-agent-03', ok:true,  detail:'scope: write:reports'},
+  {action:'Attempted: write to prod DB',     agent:'research-agent-03', ok:false, detail:'rule: block_actions'},
+  {action:'API call to /v1/contacts',        agent:'research-agent-03', ok:true,  detail:'scope: read:crm'},
+  {action:'Attempted: delete record',        agent:'etl-agent-07',      ok:false, detail:'agent revoked'},
+  {action:'Deploy to staging',               agent:'deploy-agent-01',   ok:true,  detail:'scope: write:staging'},
 ];
 let ai = 0;
-function addAuditRow() {
+function addRow() {
   const e = AUDIT[ai++ % AUDIT.length];
-  const row = document.createElement('div');
-  row.className = 'audit-row';
-  row.innerHTML = `
-    <div class="a-dot2" style="background:${e.ok?'var(--green)':'var(--red)'}"></div>
-    <div><div class="audit-action">${e.action}</div><div class="audit-meta">${e.agent} · ${e.detail}</div></div>
-    <span class="abadge ${e.ok?'ab-allow':'ab-block'}">${e.ok?'allowed':'blocked'}</span>`;
+  const r = document.createElement('div');
+  r.className = 'audit-row';
+  r.innerHTML = `<div class="adot2" style="background:${e.ok?'var(--green)':'var(--red)'}"></div><div><div class="aaction">${e.action}</div><div class="ameta">${e.agent} · ${e.detail}</div></div><span class="abg ${e.ok?'abg-ok':'abg-bl'}">${e.ok?'allowed':'blocked'}</span>`;
   const ab = document.getElementById('auditRows');
-  ab.insertBefore(row, ab.firstChild);
+  ab.insertBefore(r, ab.firstChild);
   if (ab.children.length > 8) ab.removeChild(ab.lastChild);
 }
-for (let i = 0; i < 6; i++) addAuditRow();
-setInterval(addAuditRow, 2500);
+for (let i = 0; i < 6; i++) addRow();
+setInterval(addRow, 2500);
 
-// ── scroll reveal ──
+// scroll reveal
 const io = new IntersectionObserver((entries) => {
   let d = 0;
   entries.forEach(en => {

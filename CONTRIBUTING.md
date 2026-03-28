@@ -1,56 +1,58 @@
-# Contributing to AgentPassport
+# Contributing to ACF
 
-We're building in public and want your input — especially if you've deployed agents in production and hit problems this spec should solve.
+ACF (Agent Credential Format) is an open spec. The goal is to define a standard that the community builds on — not a product any single company owns.
 
-## Ways to contribute
+## What we need right now
 
-### 1. Share an incident or pain point (most valuable right now)
+### 1. Incident reports (most valuable)
 
-If you've had an agent do something unexpected, caused a production incident, or found yourself wanting capabilities this spec doesn't define — open an issue with the `incident-report` label or post in [GitHub Discussions](../../discussions/categories/incidents).
+If you've deployed agents in production and something went wrong — or you found yourself wishing for capabilities this spec doesn't define — open an issue with the `incident-report` label.
 
-You don't need to propose a solution. The incident itself is the contribution. We'll use real incidents to shape the spec.
+You don't need to propose a solution. The incident itself is the contribution. We'll use real incidents to drive spec decisions.
 
-### 2. Review the spec
+### 2. Spec feedback
 
 Read [docs/SPEC.md](docs/SPEC.md) and open issues or PRs for:
+
 - Fields that are missing
-- Fields that are wrong or ambiguous  
-- Edge cases that aren't handled
+- Fields that are wrong or ambiguous
+- Edge cases not handled
 - Compatibility issues with MCP, A2A, OAuth 2.1, or your framework
 
-### 3. Build an integration
+Open a [GitHub Discussion](../../discussions/categories/spec) before a PR for spec changes. We want conversation before code.
 
-Framework integrations are how this becomes real:
+### 3. Framework integrations
+
+The spec only matters if agents can actually carry it. Integrations needed:
 
 - LangChain middleware
 - CrewAI agent wrapper
-- LlamaIndex integration  
-- Express/Fastify middleware
+- LlamaIndex integration
+- AutoGen support
+- Express / Fastify / Hono middleware
 - FastAPI middleware
 - Any MCP server integration
 
 See `examples/` for starting points.
 
-### 4. Propose a change to the spec
+## Spec PR checklist
 
-Open a GitHub Discussion in the `Spec Proposals` category before opening a PR for spec changes. We want discussion before code.
-
-Spec PRs should include:
-- Motivation (ideally a real incident or use case)
-- The proposed change
-- Any backward compatibility notes
-- References to related standards if relevant
+- [ ] Motivation: link to a real incident or use case
+- [ ] Proposed change clearly described
+- [ ] Backward compatibility notes
+- [ ] References to related standards if applicable
+- [ ] Discussion opened first
 
 ## Ground rules
 
-- Be specific. "This is missing something" is less useful than "when an agent spawns a sub-agent, X field should be required because Y incident could happen."
-- Cite real incidents when you can. The spec is only as good as the real-world problems it solves.
-- Be kind. This is a small project with big ambitions. Encouragement and constructive critique both welcome.
+- Be specific. "This is missing something" is less useful than "when agent A spawns agent B, X field should be required because Y incident could happen."
+- Cite real incidents when possible. The spec is only as good as the real-world problems it solves.
+- Be kind.
 
-## Development setup
+## Development
 
 ```bash
-git clone https://github.com/agentpassport/agentpassport
+git clone https://github.com/teamofonePM/agentpassport
 cd agentpassport
 npm install
 npm test
@@ -58,4 +60,8 @@ npm test
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree your contributions will be licensed under MIT.
+
+---
+
+Questions? Open a [Discussion](../../discussions) or reach out to [Anmol Rattan](https://www.linkedin.com/in/theanmolrattan/) directly.

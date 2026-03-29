@@ -1,34 +1,42 @@
 # ACF — Agent Credential Format
 
-**The open standard for AI agent identity, permissions, and audit.**
+**A proposed open standard for AI agent identity, permissions, and audit.**
 
-A signed JWT that every agent carries and every API can verify in under 1ms — offline, no round trip, no shared secret.
+> This is a community proposal. ACF is not a product or a company — it's a spec, like JWT or OAuth. Anyone can implement it, build on it, or help shape it.
+>
+> Proposed by [Anmol Rattan](https://www.linkedin.com/in/theanmolrattan/) · Open for community input · March 2026
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Spec Version](https://img.shields.io/badge/spec-v0.1--draft-blue)](docs/SPEC.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-
-> Built by [@theanmolrattan](https://www.linkedin.com/in/theanmolrattan/) · Building in public · March 2026
+[![Discussions](https://img.shields.io/badge/discussions-open-green)](../../discussions)
 
 ---
 
-## What is ACF?
+## The problem
 
-ACF is to agent identity what JWT is to human identity — a standard token format, not a vendor product.
+Agents are in production everywhere — marketing automation, DevOps pipelines, data workflows, customer support. Every one of them calls APIs. And right now, those APIs have no standard way to know:
 
-Right now agents arrive at APIs as anonymous HTTP calls. Three independent surveys confirm the scale of this problem:
+- **Who** sent this request (which org, which agent)
+- **What** it's authorized to do
+- **Whether** it acted within its intended scope
+- **How** to stop it if it doesn't
+
+Three recent surveys confirm this is systemic, not anecdotal:
 
 - **68%** of organizations cannot distinguish AI agent activity from human activity — even as 85% run agents in production *(CSA / Aembit, March 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/03/24/more-than-two-thirds-of-organizations-cannot-clearly-distinguish-ai-agent-from-human-actions))*
-- **84%** doubt they could pass a compliance audit focused on agent behavior *(CSA / Strata, February 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations))*
+- **84%** doubt they could pass a compliance audit on agent behavior *(CSA / Strata, February 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/02/05/cloud-security-alliance-strata-survey-finds-that-enterprises-are-in-time-to-trust-phase-as-they-build-ai-autonomy-foundations))*
 - **78%** have no policy for creating or removing AI agent identities *(CSA / Oasis, January 2026 — [source](https://cloudsecurityalliance.org/press-releases/2026/01/27/79-of-it-pros-feel-ill-equipped-to-prevent-attacks-via-nhi-csa-oasis-survey-finds))*
 
-MCP's 2026 roadmap lists **"audit trails, enterprise-managed auth, and delegation chains"** as explicitly unaddressed. A2A calls for **"authorization schemes within the AgentCard"** as future work. ACF is the open format proposal that fills both gaps.
+MCP's 2026 roadmap explicitly lists **"audit trails, enterprise-managed auth, and delegation chains"** as unaddressed. A2A calls for **"authorization schemes within the AgentCard"** as future work.
+
+There is a clear gap. ACF is a proposal to fill it — openly, with community input.
 
 ---
 
-## The token
+## What ACF proposes
 
-An ACF token is a signed JWT carried in the `x-acf-token` header:
+A signed JWT — the **Agent Credential Format** — carried in the `x-acf-token` header on every agent request. Any API receiving the token can verify it offline in under 1ms.
 
 ```json
 {
@@ -50,24 +58,23 @@ An ACF token is a signed JWT carried in the `x-acf-token` header:
 }
 ```
 
-Signed with **EdDSA (Ed25519)**. Verified offline. No database lookup. Under 1ms.
+Signed with EdDSA (Ed25519). No database lookup. No round trip. Verifiable in under 1ms.
 
 ---
 
-## Quickstart
+## Reference implementation
 
-```bash
-npm install acf-token
-```
+A reference implementation is provided to demonstrate the spec — not as a production service, but as a working example for implementers.
 
-**Issue (agent deployer):**
+**Issue a credential:**
 
 ```typescript
 import { ACF } from 'acf-token'
 
 const acf = new ACF({
-  orgId: 'acme_corp',
-  signingKey: process.env.ACF_PRIVATE_KEY
+  orgId:      'acme_corp',
+  orgDomain:  'acme.com',
+  signingKey: process.env.ACF_PRIVATE_KEY  // your key, stays with you
 })
 
 const { token } = await acf.issue({
@@ -80,86 +87,80 @@ const { token } = await acf.issue({
 headers['x-acf-token'] = token
 ```
 
-**Verify (API provider):**
+**Verify at an API:**
 
 ```typescript
 import { verify } from 'acf-token'
 
 const credential = await verify(req.headers['x-acf-token'])
 
-// credential.org        -> 'acme_corp'  (domain-verified)
-// credential.agentId    -> 'research-agent-01'
-// credential.scopes     -> ['read:crm']
-// credential.rules      -> { blockActions: ['send:email'] }
+// credential.org       -> 'acme_corp'  (domain-verified)
+// credential.agentId   -> 'research-agent-01'
+// credential.scopes    -> ['read:crm']
+// credential.rules     -> { blockActions: ['send:email'] }
 
 if (!credential.scopes.includes(requiredScope)) {
   return res.status(403).json({ error: 'Scope not granted' })
 }
-```
-
-**Revoke instantly:**
-
-```typescript
-import { RulesClient } from 'acf-token'
-
-const rules = new RulesClient(process.env.ACF_KEY)
-
-await rules.revoke('research-agent-01')     // kill one agent, <500ms
-await rules.block({ action: 'send:email' }) // block across all org agents
+// offline · under 1ms · no round trip
 ```
 
 ---
 
-## Why not just API keys?
+## Relationship to existing standards
 
-|  | API keys | ACF tokens |
-|---|---|---|
-| Who is the agent? | Unknown | Org + agentId, domain-verified |
-| What can it do? | Full credential scope | Explicit scopes + blocklist |
-| Stop it instantly? | Rotate and redeploy | revoke() in under 500ms |
-| Delegation chain? | None | Full parent to child tracing |
-| Audit trail? | None | Every action attributable |
-| Compliance export? | No | Yes |
+ACF does not replace anything. It fills documented gaps:
 
----
-
-## Spec
-
-The full Agent Credential Format specification lives in [`docs/SPEC.md`](docs/SPEC.md).
-
-Covers: token structure, all claim definitions, issuer discovery, verification algorithm, delegation chain validation, security considerations, and compatibility with MCP, A2A, and OAuth 2.1.
-
-[Read the spec](docs/SPEC.md) — [Propose changes](../../discussions/categories/spec)
+| Standard | Gap ACF addresses |
+|---|---|
+| **MCP** | Runtime identity, scoped permissions, delegation chains — all on MCP's own 2026 roadmap as unaddressed |
+| **A2A** | Enforcement of AgentCard authentication claims at runtime |
+| **OAuth 2.1** | Agent-specific claims: `rules`, `delegation`, `org` — ACF tokens are OAuth 2.1-compatible JWTs |
 
 ---
 
-## Compatibility
+## Status
 
-ACF fills the gaps MCP and A2A leave open without touching either protocol:
-
-| Standard | Leaves open | ACF fills |
-|---|---|---|
-| MCP | Runtime identity, delegation, audit | All three |
-| A2A | Enforcement of AgentCard auth claims | Runtime credential |
-| OAuth 2.1 | Agent-specific claim types | rules, delegation, org fields |
-
----
-
-## Contributing
-
-Two things wanted right now:
-
-1. **Incident reports** — open an issue with `incident-report` label. The incident itself is the contribution, no fix needed.
-2. **Spec feedback** — missing fields, wrong fields, edge cases. Open a Discussion before a PR.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+- [x] Initial spec draft — [`docs/SPEC.md`](docs/SPEC.md)
+- [x] Reference implementation skeleton
+- [x] Express middleware example
+- [ ] Full reference implementation (contributions welcome)
+- [ ] LangChain / CrewAI / LlamaIndex integrations (contributions welcome)
+- [ ] MCP working group submission
+- [ ] Community review round 1
 
 ---
 
-## Built by
+## How to get involved
 
-[Anmol Rattan](https://www.linkedin.com/in/theanmolrattan/) — building in public. Feedback, collaborators, and design partners welcome.
+This spec only gets better with real-world input. Three ways to contribute:
+
+**1. Share an incident** — if you've deployed agents and something went wrong, open an issue with the `incident-report` label. The incident itself is the contribution — no fix needed.
+
+**2. Review the spec** — read [`docs/SPEC.md`](docs/SPEC.md) and open issues or discussions for missing fields, wrong assumptions, or edge cases.
+
+**3. Build an integration** — LangChain, CrewAI, LlamaIndex, FastAPI, any MCP server. See `examples/` to start.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
-MIT License. Spec v0.1 draft — open for community input.
+## For teams building with agents internally
+
+If your team is already running agents in production — marketing automation, data pipelines, internal tools — ACF is designed to be dropped in without changing your architecture. The `x-acf-token` header is additive. Your agents keep working; you gain attribution, scope enforcement, and a kill switch.
+
+[Open an issue](../../issues) or [start a discussion](../../discussions) if you want to talk through your use case.
+
+---
+
+## Proposed by
+
+[Anmol Rattan](https://www.linkedin.com/in/theanmolrattan/) — PM, building with agents. This spec came out of real problems encountered deploying agents in production workflows. Sharing it publicly in the hope it becomes a useful standard.
+
+Not affiliated with any vendor. Not a company. Just a proposal looking for collaborators.
+
+---
+
+## License
+
+MIT. The spec and all reference code are free to use, implement, fork, and build on.
